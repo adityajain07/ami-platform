@@ -1,10 +1,11 @@
 from django.conf import settings
 from django.urls import path
+from django.urls.conf import include
+from djoser.views import UserViewSet
 from rest_framework.routers import DefaultRouter, SimpleRouter
 
 from ami.labelstudio import views as labelstudio_views
 from ami.main.api import views
-from ami.users.api.views import UserViewSet
 
 if settings.DEBUG:
     router = DefaultRouter()
@@ -41,6 +42,7 @@ router.register(r"labelstudio/config", labelstudio_views.LabelStudioConfigViewSe
 app_name = "api"  # this breaks the automatic routing with viewsets & hyperlinked serializers
 
 urlpatterns = [
+    path("auth/", include("djoser.urls.authtoken")),
     path("status/summary/", views.SummaryView.as_view(), name="status-summary"),
     path("status/storage/", views.StorageStatus.as_view(), name="status-storage"),
 ]

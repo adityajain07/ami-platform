@@ -2,7 +2,6 @@ import datetime
 import typing
 import urllib.parse
 
-from django.contrib.auth.models import Group, User
 from django.db.models import Count
 from rest_framework import serializers
 from rest_framework.reverse import reverse
@@ -20,6 +19,7 @@ from ..models import (
     SourceImage,
     Taxon,
 )
+from .permissions import add_object_level_permissions
 
 
 def reverse_with_params(viewname: str, args=None, kwargs=None, request=None, params: dict = {}, **extra) -> str:
@@ -47,30 +47,9 @@ class DefaultSerializer(serializers.HyperlinkedModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
 
-        # Add placeholder object-level permissions to each object
-        # For this placeholder, everyone can read,
-        # logged-in users can edit, and superusers can delete
-        permissions = set()
-        if hasattr(instance, "user_permissions"):
-            permissions.update(instance.user_permissions)
-        elif self.context["request"].user.is_authenticated:
-            permissions.update(["update", "create"])
-            if self.context["request"].user.is_superuser:
-                permissions.update(["delete"])
-        data["user_permissions"] = permissions
-        return data
-
-
-class UserSerializer(DefaultSerializer):
-    class Meta:
-        model = User
-        fields = ["details", "username", "email", "groups"]
-
-
-class GroupSerializer(DefaultSerializer):
-    class Meta:
-        model = Group
-        fields = ["id", "details", "name"]
+        request = self.context.get("request")
+        user = request.user if request else None
+        return add_object_level_permissions(user, data)
 
 
 class SourceImageNestedSerializer(DefaultSerializer):
@@ -83,8 +62,8 @@ class SourceImageNestedSerializer(DefaultSerializer):
             "width",
             "height",
             "timestamp",
-            "detections_count",
-            "detections",
+            # "detections_count",
+            # "detections",
         ]
 
 
@@ -107,7 +86,6 @@ class DeploymentListSerializer(DefaultSerializer):
             "occurrences",
             "events_count",
             "captures_count",
-            "detections_count",
             "occurrences_count",
             "taxa_count",
             "project",
@@ -115,6 +93,8 @@ class DeploymentListSerializer(DefaultSerializer):
             "updated_at",
             "latitude",
             "longitude",
+            "first_date",
+            "last_date",
         ]
 
     def get_events(self, obj):
