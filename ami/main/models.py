@@ -1251,7 +1251,7 @@ class TaxaManager(models.Manager):
     def get_queryset(self):
         # Prefetch parent and parents
         # return super().get_queryset().select_related("parent").prefetch_related("parents")
-        return super().get_queryset()
+        return super().get_queryset().select_related("parent")
 
     def add_species_parents(self):
         """Add parents to all species that don't have them.
@@ -1346,6 +1346,7 @@ class Taxon(BaseModel):
     rank = models.CharField(max_length=255, choices=TaxonRank.choices(), default=TaxonRank.SPECIES.name)
     parent = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, related_name="direct_children")
     parents = models.ManyToManyField("self", related_name="children", symmetrical=False)
+    # taxonomy = models.JSONField(null=True, blank=True)
     active = models.BooleanField(default=True)
     synonym_of = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True, related_name="synonyms")
     projects = models.ManyToManyField("Project", related_name="taxa")
