@@ -581,6 +581,7 @@ class ClassificationSerializer(DefaultSerializer):
             "taxon",
             "score",
             "algorithm",
+            "created_at",
         ]
 
 
@@ -748,6 +749,7 @@ class OccurrenceIdentificationSerializer(DefaultSerializer):
             "details",
             "taxon",
             "user",
+            "created_at",
         ]
 
 
