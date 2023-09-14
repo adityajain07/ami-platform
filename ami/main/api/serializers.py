@@ -331,7 +331,7 @@ class DeploymentSerializer(DeploymentListSerializer):
         )
 
 
-class TaxonParentNestedSerializer(DefaultSerializer):
+class TaxonNoParentNestedSerializer(DefaultSerializer):
     class Meta:
         model = Taxon
         fields = [
@@ -342,18 +342,24 @@ class TaxonParentNestedSerializer(DefaultSerializer):
         ]
 
 
-class TaxonNestedSerializer(DefaultSerializer):
+class TaxonParentNestedSerializer(TaxonNoParentNestedSerializer):
+    parent = TaxonNoParentNestedSerializer(read_only=True)
+
+    class Meta(TaxonNoParentNestedSerializer.Meta):
+        fields = TaxonNoParentNestedSerializer.Meta.fields + [
+            "parent",
+        ]
+
+
+class TaxonNestedSerializer(TaxonParentNestedSerializer):
+    """
+    Simple Taxon serializer with 2 levels of nesting.
+    """
+
     parent = TaxonParentNestedSerializer(read_only=True)
 
-    class Meta:
-        model = Taxon
-        fields = [
-            "id",
-            "name",
-            "parent",
-            "rank",
-            "details",
-        ]
+    class Meta(TaxonParentNestedSerializer.Meta):
+        pass
 
 
 class TaxonListSerializer(DefaultSerializer):
@@ -389,11 +395,14 @@ class TaxonListSerializer(DefaultSerializer):
 
 
 class CaptureTaxonSerializer(DefaultSerializer):
+    parent = TaxonParentNestedSerializer(read_only=True)
+
     class Meta:
         model = Taxon
         fields = [
             "id",
             "name",
+            "parent",
             "rank",
             "details",
         ]
