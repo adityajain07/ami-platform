@@ -568,6 +568,7 @@ class ClassificationSerializer(DefaultSerializer):
         model = Classification
         fields = [
             "id",
+            "details",
             "taxon",
             "score",
             "algorithm",
